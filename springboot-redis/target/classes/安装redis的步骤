@@ -1,0 +1,11 @@
+安装redis编译的c环境：yum install gcc-c++
+在用户路径下打开文件夹路径：cd /root/
+下载redis：wget http://download.redis.io/releases/redis-4.0.11.tar.gz
+解压：tar -xvf redis-4.0.11.tar.gz
+进入文件夹：cd redis-4.0.11
+使用 make 命令编译 redis：make
+指定安装路径：make PREFIX=/usr/local/redis install
+把下载文件夹下面的redis.conf复制到安装文件夹：cp redis.conf /usr/local/redis
+跳转到安装的路径：cd /usr/local/redis/
+修改redis.conf的配置文件，使得redis可以后端启动：vim redis.conf 找到“daemonize no” 改成“daemonize yes”；注释“bind 127.0.0.1” ；“protected-mode no”；添加密码“requirepass  123456”
+后端启动redis：./bin/redis-server ./redis.conf

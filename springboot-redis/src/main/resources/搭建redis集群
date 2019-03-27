@@ -1,0 +1,104 @@
+一、环境搭建
+1、安装gcc
+下载：wget http://ftp.gnu.org/gnu/gcc/gcc-6.1.0/gcc-6.1.0.tar.bz2
+解压：tar -jxvf gcc-6.1.0.tar.bz2
+下载供编译需求的依赖项：
+cd gcc-6.1.0
+./contrib/download_prerequisites
+ 建立编译后文件存放目录：
+mkdir gcc-build-6.4.0
+cd gcc-build-6.4.0
+../gcc-6.4.0/configure --enable-checking=release --enable-languages=c,c++ --disable-multilib （如果报错，则返回上一层，修改命令前面的路径再执行）
+编译：make
+安装：make install
+或者选择在线安装：yum install gcc-c++
+
+2、redis安装
+下载：wget http://download.redis.io/releases/redis-4.0.10.tar.gz
+解压：tar xzf redis-4.0.10.tar.gz
+cd redis-4.0.10
+make
+安装：make PREFIX=/usr/local/redis install
+把redis安装目录下的redis.conf文件复制到/usr/local/redis文件夹下
+cp redis.conf /usr/local/redis
+启动：
+cd /usr/local/redis/bin
+./redis-server
+把redis.conf放到bin目录下
+后端启动方式：
+修改配置文件：vim /usr/local/redis/bin/redis.conf
+文件中的：daemonize 改成yes
+在/usr/local/redis/bin目录下执行：
+./redis-server ./redis.conf
+停止redis：./redis-cli shutdown
+
+3、安装RVM
+gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+curl -sSL https://get.rvm.io | bash -s stable
+cd /usr/local/rvm
+source ./scripts/rvm
+echo "ruby_url=https://cache.ruby-china.org/pub/ruby" > ./user/db
+
+4、安装ruby
+rvm requirements
+rvm install 2.5.1
+rvm use 2.5.1 --default
+
+5、安装redis-3.0.0.gem
+上传redis-3.0.0.gem到/home/admin/workSpace，在workSpace目录下执行：gem install redis-3.0.0.gem
+cd /home/admin/workSpace/redis-4.0.10/src
+
+二、搭建集群
+cd /usr/local
+创建文件夹：mkdir redis-cluster
+cd redis
+cp -r bin ../redis-cluster/redis01
+cd /usr/local/redis-cluster/redis01
+删除redis01目录下的dump.rdb文件：rm -f dump.rdb
+vim redis.conf
+端口号改成7001
+bind 192.168.222.130（改成正确的IP）
+protected-mode 的模式改成no
+cluster-enabled yes的注释解除
+cd ..
+cp -r redis01/ redis02
+cp -r redis01/ redis03
+cp -r redis01/ redis04
+cp -r redis01/ redis05
+cp -r redis01/ redis06
+ 依次修改每个redis的redis.conf的端口号：vim redis02/redis.conf
+把创建集群的ruby脚本复制到/usr/local/redis-cluster目录下
+cd /home/admin/workSpace/redis-4.0.10/src
+cp *.rb /usr/local/redis-cluster/
+启动六个redis实例：
+cd /usr/local/redis-cluster
+创建启动六个实例的脚本：vim startall.sh
+在脚本中写入：
+cd redis01
+./redis-server redis.conf
+cd ..
+cd redis02
+./redis-server redis.conf
+cd ..
+cd redis03
+./redis-server redis.conf
+cd ..
+cd redis04
+./redis-server redis.conf
+cd ..
+cd redis05
+./redis-server redis.conf
+cd ..
+cd redis06
+./redis-server redis.conf
+cd ..
+把脚本变成可执行的文件：chmod +x startall.sh
+./startall.sh
+创建集群的命令（要把IP地址改成自己的）：./redis-trib.rb create --replicas 1 192.168.222.130:7001 192.168.222.130:7002 192.168.222.130:7003 192.168.222.130:7004 192.168.222.130:7005  192.168.222.130:7006
+
+在pom.xml文件中引入：
+<dependency>
+    <groupId>redis.clients</groupId>
+    <artifactId>jedis</artifactId>
+    <version>2.9.0</version>
+</dependency>
